@@ -24,8 +24,28 @@ async function run() {
 		const orderCollection = client.db("geniusCar").collection("orders");
 
 		app.get("/services", async (req, res) => {
-			const query = {};
-			const cursor = serviceCollection.find(query);
+			// Conditional query
+			const search = req.query.search;
+			let query = {};
+			if (search.length) {
+				query = {
+					$text: {
+						$search: search,
+					},
+				};
+			}
+			// const query = { price: { $gt: 100, $lt: 200 } };
+			// const query = { price: { $gte: 100 } };
+			// const query = { price: { $lte: 100 } };
+			// const query = { price: { $ne: 150 } };
+			// const query = { price: { $in: [150, 20, 30] } };
+			// const query = { price: { $nin: [150, 40] } };
+
+			// Compresion query
+			// const query = { $and: [{ price: { $gt: 20 } }, { price: { $gt: 100 } }] };
+			const order = req.query.order === "asc" ? 1 : -1;
+			const cursor = serviceCollection.find(query).sort({ price: order });
+			// const cursor = serviceCollection.find(query);
 			const services = await cursor.toArray();
 			res.send(services);
 		});
